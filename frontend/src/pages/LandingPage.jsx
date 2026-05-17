@@ -1,32 +1,3 @@
-<<<<<<< HEAD
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-
-export default function LandingPage() {
-    return (
-        <div className="min-h-screen flex flex-col justify-center items-center text-center p-6">
-            <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                className="max-w-3xl glass-panel p-10 rounded-3xl box-glow"
-            >
-                <h1 className="text-5xl font-bold mb-6 text-glow">Train Smarter with AI</h1>
-                <p className="text-xl text-color-text-secondary mb-10">Personalized workout generation, intelligent insights, and gamification systems for your fitness journey.</p>
-                <div className="flex gap-4 justify-center">
-                    <Link to="/register" className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-full font-semibold transition-all shadow-[0_0_15px_rgba(59,130,246,0.5)]">
-                        Get Started
-                    </Link>
-                    <Link to="/login" className="bg-transparent border border-blue-500 text-blue-400 hover:bg-blue-900/30 px-8 py-3 rounded-full font-semibold transition-all">
-                        Login
-                    </Link>
-                </div>
-            </motion.div>
-        </div>
-    );
-}
-=======
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -314,9 +285,9 @@ const LandingPage = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {pricing.map((plan, idx) => (
-                        <Card 
+                        <div 
                             key={idx} 
-                            className={`p-6 sm:p-8 flex flex-col justify-between border-slate-900 relative ${
+                            className={`p-6 sm:p-8 flex flex-col justify-between rounded-xl border border-slate-900 relative ${
                                 plan.isPopular ? 'border-neon-green/30 shadow-[0_0_20px_rgba(57,255,20,0.08)] bg-slate-900/40' : 'bg-slate-900/10'
                             }`}
                         >
@@ -355,7 +326,7 @@ const LandingPage = () => {
                             >
                                 {plan.cta}
                             </Button>
-                        </Card>
+                        </div>
                     ))}
                 </div>
             </section>
@@ -445,4 +416,3 @@ const PlusIcon = (props) => (
 );
 
 export default LandingPage;
->>>>>>> feature/advanced-fitforge-ui
