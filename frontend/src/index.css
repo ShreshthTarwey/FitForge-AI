@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @theme {
+<<<<<<< HEAD
   --color-primary: #3b82f6;
   --color-secondary: #8b5cf6;
   --color-accent: #10b981;
@@ -34,4 +35,47 @@ body {
 /* Glowing box utility */
 .box-glow {
   box-shadow: 0 0 15px rgba(59, 130, 246, 0.3), 0 0 30px rgba(139, 92, 246, 0.2);
+=======
+  --color-slate-950: #080b11;
+  --color-slate-900: #0f172a;
+  --color-slate-800: #1e293b;
+  --color-slate-700: #334155;
+  --color-neon-green: #10b981; /* High-fidelity emerald green */
+  --color-neon-blue: #0ea5e9;  /* Elegant deep sky blue */
+  
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-100 font-sans antialiased selection:bg-neon-blue selection:text-slate-950;
+    letter-spacing: -0.011em;
+  }
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+  }
+  .glass-card {
+    background: rgba(15, 23, 42, 0.25);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.6);
+    border-radius: 16px;
+    padding: 24px;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .glass-card:hover {
+    border-color: rgba(255, 255, 255, 0.09);
+    background: rgba(30, 41, 59, 0.15);
+    transform: translateY(-2px);
+  }
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-neon-green to-neon-blue;
+  }
+>>>>>>> feature/advanced-fitforge-ui
 }
