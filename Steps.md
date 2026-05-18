@@ -82,8 +82,20 @@
 - Polished the entire UI using Framer Motion (`initial`, `animate`, `transition`) for smooth page loads and state changes.
 - Standardized the use of glassmorphism (`.glass-panel`) and glowing effects (`.box-glow`, `.text-glow`) across all React components.
 
-## Step 18: Testing & Bug Fixing
-- Manually tested Auth Flow (Sanctum CORS configuration, Login, Register).
-- Tested Workout Generation Flow, asserting that the fallback mechanism operates gracefully when no exact DB match is found.
-- Ensured Gemini AI gracefully defaults to placeholders if `GEMINI_API_KEY` is missing.
-- Confirmed localhost demo readiness.
+## Step 18: Testing, Routing Mismatches & Bug Fixing
+- Resolved pre-flight/CORS network errors by standardizing all service connectors (`progressService`, `exercisesService`) to use the `/api` prefix, aligning with Laravel's API middleware.
+- Refactored `StatsCard.jsx` to prevent React from rendering raw `0` values when the statistics trend is exactly zero, replacing it with logical `!!trend` double negation gates.
+- Connected the dynamic `PresenterController` switcher so that the user can seamlessly toggle between **Live Telemetry Active** (premium mock presentation indices) and **Offline Telemetry** (genuine database totals).
+- Wired the gamification rank progress bar directly to the database. Leveling now calculates dynamically at `1 + Math.floor((Total Workouts * 500) / 1000)` with progressive rank designations (*Beginner Athlete*, *Active Warrior*, *Advanced Crusher*, *Elite Specialist*).
+
+## Step 19: Full-Stack Nutrition, Hydration & Sleep Tracker
+- Generated SQLite migrations, tables, and Eloquent models for detailed wellness stats:
+  - `meals`: Logs `name`, `calories`, `protein`, `carbs`, `fats`, `meal_type` (breakfast, lunch, dinner, snack), and time.
+  - `water_logs`: Tracks daily hydration in milliliters.
+  - `sleep_logs`: Persists sleep hygiene values in decimal hours.
+- Created `NutritionController.php` supporting logging meals, deleting meals, adding water, resetting water, and logging sleep hours.
+- Registered `/api/nutrition/*` routes protected by Sanctum middleware in `routes/api.php`.
+- Created frontend API service `api/nutrition.js` and upgraded Zustand store `useNutritionStore.js` to execute real asynchronous operations with a resilient offline fallback state.
+- Integrated dynamic mounting hooks (`useEffect`) inside `NutritionDashboard.jsx` to load and aggregate the authenticated user's daily statistics automatically from the database on page load!
+- Successfully tested the complete generation, starting, completing, and logging of workout logs end-to-end!
+

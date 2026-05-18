@@ -10,12 +10,13 @@ This application was designed with a futuristic, premium UI featuring dark theme
 - **AI Fitness Coach**: Gemini AI integration to generate workout insights, recovery advice, and difficulty prediction (gracefully falls back if API key is missing).
 - **Workout Generator**: Algorithm matching user inputs (Goal, Intensity, Duration, Type) with predefined templates, dynamically scaling to meet constraints.
 - **Progress Tracking & Streaks**: Log completed workouts and calories burned while building a consistency streak.
-- **Gamification**: Unlock automatic achievements (e.g. First Workout, 7 Day Streak) and evolve fitness avatar level based on completion milestones.
-- **Dashboard**: Smart analytics utilizing Recharts to provide dynamic statistics, charts, and activity tracking.
+- **Gamification**: Unlock automatic achievements (e.g. First Workout, 7 Day Streak) and evolve fitness avatar level dynamically (+500 XP per logged workout) with dynamic leveling.
+- **Dashboard**: Smart analytics utilizing Recharts to provide dynamic statistics, charts, and activity tracking, switching seamlessly between mock Live Telemetry and real SQL Database Telemetry.
+- **Nutrition, Hydration & Sleep Tracker**: Persist daily calorie & macronutrient goals, log water consumption with an interactive liquid beaker animation, and track sleep hygiene hours directly in your database.
 
 ## Tech Stack
-- **Backend**: Laravel 12, Sanctum, MySQL, Gemini API Service
-- **Frontend**: React (Vite), Tailwind CSS v4, Axios, React Router, Framer Motion, Recharts, Lucide React Icons
+- **Backend**: Laravel 12, Sanctum, SQLite / MySQL, Gemini API Service
+- **Frontend**: React (Vite), Tailwind CSS v4, Axios, React Router, Zustand, Framer Motion, Recharts, Lucide React Icons
 
 ## Folder Structure
 - `backend/`: Laravel REST API backend
@@ -27,7 +28,7 @@ This application was designed with a futuristic, premium UI featuring dark theme
 1. Open the `backend/` directory.
 2. Run `composer install` to install dependencies.
 3. Configure your `.env` file (copy `.env.example` to `.env` if needed) and set your database connection.
-4. Run `php artisan migrate:fresh --seed` to run migrations and populate dummy workout plans and exercises.
+4. Run `php artisan migrate:fresh --seed` to run migrations (including meals, water logs, and sleep logs) and populate dummy workout plans and exercises.
 5. Provide your `GEMINI_API_KEY` in the `.env` file to enable AI functionality.
 6. Start the development server using `php artisan serve`.
 
@@ -54,11 +55,16 @@ GEMINI_API_KEY=your_gemini_api_key_here
 - `POST /api/login` : User Authentication
 - `POST /api/logout` : End Session
 - `GET /api/user` : Fetch authenticated user info
-- `GET /api/dashboard` : Fetch user dashboard stats and charts
+- `GET /api/dashboard` : Fetch user dashboard stats and weekly charts
 - `POST /api/workout/generate` : Retrieve generated AI workout plan
 - `POST /api/progress/log` : Save workout completion and unlock streaks/achievements
+- `GET /api/nutrition` : Fetch today's accumulated meals, sleep hours, and water logs
+- `POST /api/nutrition/meal` : Log a new meal with detailed macros
+- `DELETE /api/nutrition/meal/{id}` : Delete a logged meal
+- `POST /api/nutrition/water` : Log water intake (in ml)
+- `POST /api/nutrition/water/reset` : Reset daily water intake back to 0ml
+- `POST /api/nutrition/sleep` : Update hours slept for today
 
 ## Future Scope
 - **Admin Panel**: Web interface for managing workouts, exercises, and system configuration.
-- **Deeper AI Fallbacks**: Fallback to local heuristic models if Gemini API limits are reached.
 - **Social Features**: Leaderboards and friends lists for fitness tracking.
