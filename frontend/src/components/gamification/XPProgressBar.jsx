@@ -1,8 +1,14 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const XPProgressBar = ({ level, xp, xpNextLevel }) => {
+const XPProgressBar = ({ level, xp, xpNextLevel, rankName }) => {
     const percentage = Math.min(100, Math.round((xp / xpNextLevel) * 100)) || 0;
+
+    const calculatedRank = rankName || {
+        1: 'Beginner Athlete',
+        2: 'Active Warrior',
+        3: 'Advanced Crusher',
+    }[level] || 'Elite Specialist';
 
     return (
         <div className="bg-slate-800/40 border border-slate-700/50 backdrop-blur-xl rounded-2xl p-6 relative overflow-hidden group">
@@ -14,7 +20,7 @@ const XPProgressBar = ({ level, xp, xpNextLevel }) => {
                     <h4 className="text-xs font-bold text-neon-green uppercase tracking-wider mb-1">Rank Progress</h4>
                     <div className="flex items-baseline gap-2">
                         <span className="text-3xl font-extrabold text-white">Level {level}</span>
-                        <span className="text-sm font-semibold text-slate-400">Fitness Master</span>
+                        <span className="text-sm font-semibold text-slate-400">{calculatedRank}</span>
                     </div>
                 </div>
                 

@@ -17,16 +17,24 @@ class DashboardController extends Controller
         $streakCount = $user->streak_count;
         $avatarLevel = $user->avatar_level;
 
-        // Dummy data for charts if no real logs
-        $weeklyActivity = [
-            ['day' => 'Mon', 'minutes' => 30],
-            ['day' => 'Tue', 'minutes' => 45],
-            ['day' => 'Wed', 'minutes' => 0],
-            ['day' => 'Thu', 'minutes' => 60],
-            ['day' => 'Fri', 'minutes' => 30],
-            ['day' => 'Sat', 'minutes' => 90],
-            ['day' => 'Sun', 'minutes' => 0],
-        ];
+        // Calculate real daily calories and workouts count for current week
+        $startOfWeek = \Carbon\Carbon::now()->startOfWeek();
+        $weeklyActivity = [];
+
+        for ($i = 0; $i < 7; $i++) {
+            $dateString = $startOfWeek->copy()->addDays($i)->toDateString();
+            $dayName = $startOfWeek->copy()->addDays($i)->format('D'); // 'Mon', 'Tue', etc.
+            
+            $dayLogs = ProgressLog::where('user_id', $user->id)
+                ->where('completion_date', $dateString)
+                ->get();
+
+            $weeklyActivity[] = [
+                'name' => $dayName,
+                'calories' => (int) $dayLogs->sum('calories_burned'),
+                'workouts' => (int) $dayLogs->count()
+            ];
+        }
 
         $categoryData = [
             ['name' => 'Cardio', 'value' => 40],

@@ -15,4 +15,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/workout/generate', [\App\Http\Controllers\WorkoutController::class, 'generate']);
     Route::post('/progress/log', [\App\Http\Controllers\ProgressController::class, 'logWorkout']);
     Route::post('/logout', [AuthController::class, 'logout']);
+    
+    // Nutrition & Hydration API Routes
+    Route::get('/nutrition', [\App\Http\Controllers\NutritionController::class, 'index']);
+    Route::post('/nutrition/meal', [\App\Http\Controllers\NutritionController::class, 'logMeal']);
+    Route::delete('/nutrition/meal/{id}', [\App\Http\Controllers\NutritionController::class, 'deleteMeal']);
+    Route::post('/nutrition/water', [\App\Http\Controllers\NutritionController::class, 'logWater']);
+    Route::post('/nutrition/water/reset', [\App\Http\Controllers\NutritionController::class, 'resetWater']);
+    Route::post('/nutrition/sleep', [\App\Http\Controllers\NutritionController::class, 'logSleep']);
 });

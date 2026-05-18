@@ -29,7 +29,7 @@ const StatsCard = ({ title, value, icon: Icon, trend, colorVariant = 'green', de
                     <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 truncate">{title}</p>
                     <div className="flex items-baseline gap-2 mt-0.5">
                         <p className="text-xl font-black text-slate-100 tracking-tight">{value}</p>
-                        {trend && (
+                        {!!trend && (
                             <span className={clsx(
                                 "text-[10px] font-extrabold uppercase tracking-wide",
                                 trend > 0 ? "text-neon-green" : trend < 0 ? "text-red-500" : "text-slate-500"

@@ -33,12 +33,16 @@ export const useWorkoutStore = create((set, get) => ({
         set({ isLoading: true, error: null });
         try {
             const response = await workoutsService.generatePlan(formData);
+            const extractedPlan = {
+                ...response.data.plan,
+                ai_insights: response.data.ai_insights
+            };
             // Prepend new plan
             set(state => ({ 
-                plans: [response.data, ...state.plans],
+                plans: [extractedPlan, ...state.plans],
                 isLoading: false 
             }));
-            return response.data;
+            return extractedPlan;
         } catch (error) {
             set({ error: error.response?.data?.message || 'Failed to generate plan', isLoading: false });
             return null;

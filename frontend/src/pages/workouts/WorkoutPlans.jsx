@@ -17,7 +17,7 @@ const mockPlans = [
 
 const WorkoutPlans = () => {
     const navigate = useNavigate();
-    const { categories, fetchCategories, isLoading } = useWorkoutStore();
+    const { categories, fetchCategories, plans, isLoading } = useWorkoutStore();
     const [view, setView] = useState('plans'); // 'plans' | 'categories'
 
     useEffect(() => {
@@ -25,8 +25,7 @@ const WorkoutPlans = () => {
     }, [fetchCategories]);
 
     const handleViewPlan = (plan) => {
-        // In a real app, open modal or navigate to detail page
-        console.log('Viewing plan:', plan);
+        navigate(`/workouts/${plan.id}`, { state: { plan } });
     };
 
     return (
@@ -68,10 +67,10 @@ const WorkoutPlans = () => {
 
                     {isLoading ? (
                         <Loader />
-                    ) : mockPlans.length > 0 ? (
+                    ) : (plans.length > 0 || mockPlans.length > 0) ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {mockPlans.map((plan, i) => (
-                                <div key={plan.id} className="animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${i * 100}ms`, animationFillMode: 'both' }}>
+                            {[...plans, ...mockPlans].map((plan, i) => (
+                                <div key={plan.id || i} className="animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${i * 100}ms`, animationFillMode: 'both' }}>
                                     <WorkoutCard plan={plan} onView={handleViewPlan} />
                                 </div>
                             ))}

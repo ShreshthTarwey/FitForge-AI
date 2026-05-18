@@ -2,7 +2,7 @@ import api from './axios';
 
 export const workoutsService = {
     // Core Generation
-    generatePlan: (data) => api.post('/workouts/generate', data),
+    generatePlan: (data) => api.post('/api/workout/generate', data),
     
     // Retrieval
     getPlans: (params) => api.get('/workouts', { params }),

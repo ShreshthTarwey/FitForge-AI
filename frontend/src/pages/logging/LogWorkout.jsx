@@ -1,25 +1,48 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import PageHeader from '../../components/common/PageHeader';
 import Card from '../../components/ui/Card';
 import WorkoutLogForm from '../../components/logging/WorkoutLogForm';
 import { Trophy } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { progressService } from '../../api/progress';
 import { useProgressStore } from '../../store/useProgressStore';
 
 const LogWorkout = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    // Assuming we would fetch the active workout plan details via useWorkoutStore
-    // Here we just mock it for the logging flow
+    const [submitting, setSubmitting] = useState(false);
     
-    // We would normally fire an API call here to save
-    const handleLogSubmit = (data) => {
-        console.log('Logging workout:', data);
-        toast.success('Workout logged successfully! Great job!');
-        
-        // Refresh progress data if needed
-        navigate('/progress');
+    const handleLogSubmit = async (data) => {
+        setSubmitting(true);
+        try {
+            const response = await progressService.logWorkout({
+                workout_plan_id: id,
+                calories_burned: data.calories_burned,
+                duration_completed: data.duration_minutes,
+                user_feedback: data.fatigue_level,
+                notes: data.notes
+            });
+
+            toast.success('Workout logged successfully to database! Great job!');
+
+            // If achievements are unlocked, notify the user visually
+            if (response.data.new_achievements && response.data.new_achievements.length > 0) {
+                response.data.new_achievements.forEach(ach => {
+                    toast.success(`🏆 Achievement Unlocked: ${ach.title}! ${ach.description}`, {
+                        duration: 6000
+                    });
+                });
+            }
+
+            // Route to dashboard so they can immediately see updated stats
+            navigate('/dashboard');
+        } catch (error) {
+            console.error('Failed to log workout:', error);
+            toast.error(error.response?.data?.message || 'Failed to save workout to database.');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -33,7 +56,7 @@ const LogWorkout = () => {
             </div>
 
             <Card className="p-4 sm:p-8 border-neon-blue/30 shadow-[0_0_20px_rgba(0,243,255,0.05)]">
-                <WorkoutLogForm onSubmit={handleLogSubmit} isLoading={false} />
+                <WorkoutLogForm onSubmit={handleLogSubmit} isLoading={submitting} />
             </Card>
         </div>
     );

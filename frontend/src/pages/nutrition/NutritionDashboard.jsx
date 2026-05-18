@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PageHeader from '../../components/common/PageHeader';
 import { useNutritionStore } from '../../store/useNutritionStore';
 import { useAuthStore } from '../../store/authStore';
@@ -12,9 +12,13 @@ import toast from 'react-hot-toast';
 
 const NutritionDashboard = () => {
     const navigate = useNavigate();
-    const { meals, waterIntake, waterTarget, sleepHours, sleepTarget, macroTarget, addWater, resetWater, logSleep, deleteMeal, getDailyTotals } = useNutritionStore();
+    const { meals, waterIntake, waterTarget, sleepHours, sleepTarget, macroTarget, addWater, resetWater, logSleep, deleteMeal, getDailyTotals, fetchNutritionData } = useNutritionStore();
     const { addXp } = useAuthStore();
     const [sleepInput, setSleepInput] = useState(sleepHours);
+
+    useEffect(() => {
+        fetchNutritionData();
+    }, []);
 
     const totals = getDailyTotals();
     const calPercentage = Math.round((totals.calories / macroTarget.calories) * 100) || 0;
