@@ -97,6 +97,22 @@ export const useAuthStore = create(
                     localStorage.removeItem('token');
                     return false;
                 }
+            },
+
+            updateProfile: async (profileData) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await authService.updateProfile(profileData);
+                    if (response.data.status === 'success') {
+                        set({ user: response.data.user, isLoading: false });
+                        return true;
+                    }
+                    set({ isLoading: false });
+                    return false;
+                } catch (error) {
+                    set({ error: error.response?.data?.message || 'Profile update failed', isLoading: false });
+                    return false;
+                }
             }
         }),
         {

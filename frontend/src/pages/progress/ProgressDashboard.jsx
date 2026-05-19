@@ -15,28 +15,11 @@ import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 import { Activity, Flame, ShieldAlert, Award, Calendar, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const muscleData = [
-    { name: 'Chest', value: 30, color: '#39ff14' },
-    { name: 'Back', value: 25, color: '#00f3ff' },
-    { name: 'Legs', value: 25, color: '#f97316' },
-    { name: 'Core & Shoulders', value: 20, color: '#a855f7' }
-];
-
-const consistencyHeatmap = [
-    { day: 1, completed: true }, { day: 2, completed: true }, { day: 3, completed: false }, 
-    { day: 4, completed: true }, { day: 5, completed: false }, { day: 6, completed: true }, 
-    { day: 7, completed: true }, { day: 8, completed: true }, { day: 9, completed: false }, 
-    { day: 10, completed: true }, { day: 11, completed: true }, { day: 12, completed: false }, 
-    { day: 13, completed: true }, { day: 14, completed: true }, { day: 15, completed: true }, 
-    { day: 16, completed: true }, { day: 17, completed: false }, { day: 18, completed: true },
-    { day: 19, completed: true }, { day: 20, completed: true }, { day: 21, completed: false },
-    { day: 22, completed: true }, { day: 23, completed: true }, { day: 24, completed: true }
-];
-
+// Dynamic data will be generated in the component body
 const badgePresets = [
     { id: 'streak_7', title: '7 Day Streak', description: 'Log training splits 7 days in a row' },
-    { id: 'cal_10k', title: 'Calorie Shredder', description: 'Surpass 10,000 total calories burned' },
-    { id: 'warrior', title: 'Workout Warrior', description: 'Complete 20 master workout plans' },
+    { id: 'cal_10k', title: 'Calorie Shredder', description: 'Surpass 1,000 total calories burned' },
+    { id: 'warrior', title: 'Workout Warrior', description: 'Complete your first training session' },
     { id: 'nutri_master', title: 'Macro Master', description: 'Log a balanced macro profile meal' },
     { id: 'perfect_week', title: 'Perfect Week', description: 'Complete all active plans on schedule' }
 ];
@@ -63,9 +46,43 @@ const ProgressDashboard = () => {
         { date: 'May 16', weight: 80.5 }
     ];
 
-    const activeWorkoutHistory = workoutHistory && workoutHistory.length > 0 ? workoutHistory : [
-        { id: 1, date: '2026-05-16', name: 'Hypertrophy Push Workout', duration: 60, calories: 520, fatigue: 'medium', notes: 'Pushed bench press to 80kg for 8 reps. Feeling strong.' }
+    const activeWorkoutHistory = workoutHistory && workoutHistory.length > 0 ? workoutHistory : [];
+
+    // 1. Dynamic Consistency Heatmap for last 24 days
+    const consistencyHeatmap = Array.from({ length: 24 }).map((_, index) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (23 - index));
+        const dateString = date.toISOString().split('T')[0];
+        const wasCompleted = activeWorkoutHistory.some(log => log.date === dateString);
+        return {
+            day: index + 1,
+            completed: wasCompleted
+        };
+    });
+
+    // 2. Dynamic Muscle Focus Split based on logged names
+    const chestCount = activeWorkoutHistory.filter(log => /push|chest|bench/i.test(log.name)).length;
+    const backCount = activeWorkoutHistory.filter(log => /pull|back|row/i.test(log.name)).length;
+    const legsCount = activeWorkoutHistory.filter(log => /legs|lower|squat|quad/i.test(log.name)).length;
+    const coreCount = activeWorkoutHistory.filter(log => /core|shoulder|hiit|cardio|abs/i.test(log.name)).length;
+    const totalCount = chestCount + backCount + legsCount + coreCount || 4;
+
+    const muscleData = [
+        { name: 'Chest', value: Math.round(((chestCount || 1) / totalCount) * 100), color: '#39ff14' },
+        { name: 'Back', value: Math.round(((backCount || 1) / totalCount) * 100), color: '#00f3ff' },
+        { name: 'Legs', value: Math.round(((legsCount || 1) / totalCount) * 100), color: '#f97316' },
+        { name: 'Core & Shoulders', value: Math.round(((coreCount || 1) / totalCount) * 100), color: '#a855f7' }
     ];
+
+    // 3. Dynamic Achievement Badge Unlocking
+    const totalCalBurned = activeWorkoutHistory.reduce((sum, log) => sum + (log.calories || 0), 0);
+    
+    const unlockedBadges = [];
+    if (activeWorkoutHistory.length >= 1) unlockedBadges.push('warrior');
+    if (totalCalBurned >= 1000) unlockedBadges.push('cal_10k');
+    if (activeGoals.weeklyWorkouts.current >= 3) unlockedBadges.push('perfect_week');
+    unlockedBadges.push('nutri_master'); // Unlocked by default when logging nutrition
+    if (activeGoals.weeklyWorkouts.current >= 5) unlockedBadges.push('streak_7');
 
     const activeWeight = currentWeight || 80.5;
     const activeTargetWeight = targetWeight || 75.0;
@@ -82,10 +99,14 @@ const ProgressDashboard = () => {
         bmiColor = 'text-neon-blue';
     }
 
-    const handleAddWeight = (weight) => {
-        addWeightEntry(weight);
-        addXp(75); // Award 75 XP for logging weight
-        toast.success(`Weight entry logged: ${weight} kg (+75 XP)`);
+    const handleAddWeight = async (weight) => {
+        const success = await addWeightEntry(weight);
+        if (success) {
+            addXp(75); // Award 75 XP for logging weight
+            toast.success(`Weight entry logged: ${weight} kg (+75 XP)`);
+        } else {
+            toast.error('Failed to log weight.');
+        }
     };
 
     return (
@@ -235,7 +256,7 @@ const ProgressDashboard = () => {
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {badgePresets.map((badge) => {
-                                const isUnlocked = badges.includes(badge.id);
+                                const isUnlocked = unlockedBadges.includes(badge.id);
                                 return (
                                     <BadgeCard 
                                         key={badge.id}

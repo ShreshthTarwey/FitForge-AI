@@ -30,6 +30,8 @@ class User extends Authenticatable
         'weekly_workout_frequency',
         'avatar_level',
         'streak_count',
+        'height',
+        'weight',
     ];
 
     /**

@@ -18,10 +18,10 @@ const ProfileForm = ({ user, onSubmit }) => {
         resolver: zodResolver(profileSchema),
         defaultValues: {
             name: user?.name || '',
-            age: 25,
-            height: 180,
-            weight: 75,
-            goal: 'muscle_gain'
+            age: user?.age || 25,
+            height: user?.height || 180,
+            weight: user?.weight || 75,
+            goal: user?.fitness_goal || 'muscle_gain'
         }
     });
 

@@ -63,6 +63,42 @@ class AuthController extends Controller
         ]);
     }
 
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $fields = $request->validate([
+            'name' => 'required|string',
+            'email' => 'nullable|string|email|unique:users,email,' . $user->id,
+            'age' => 'nullable|integer|min:1|max:120',
+            'gender' => 'nullable|string',
+            'goal' => 'nullable|string',
+            'height' => 'nullable|integer|min:50|max:300',
+            'weight' => 'nullable|integer|min:20|max:500',
+            'experience_level' => 'nullable|string',
+            'weekly_workout_frequency' => 'nullable|integer|min:1|max:7',
+        ]);
+
+        // Prevent clearing the email if it is not sent or is null
+        if (empty($fields['email'])) {
+            unset($fields['email']);
+        }
+
+        // Map frontend goal to backend fitness_goal column
+        if (isset($fields['goal'])) {
+            $fields['fitness_goal'] = $fields['goal'];
+            unset($fields['goal']);
+        }
+
+        $user->update($fields);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Profile updated successfully!',
+            'user' => $user
+        ]);
+    }
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

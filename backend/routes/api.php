@@ -14,7 +14,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index']);
     Route::post('/workout/generate', [\App\Http\Controllers\WorkoutController::class, 'generate']);
     Route::post('/progress/log', [\App\Http\Controllers\ProgressController::class, 'logWorkout']);
+    Route::get('/progress/dashboard', [\App\Http\Controllers\ProgressController::class, 'getDashboardData']);
+    Route::post('/progress/weight', [\App\Http\Controllers\ProgressController::class, 'logWeight']);
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::put('/user/profile', [AuthController::class, 'updateProfile']);
     
     // Nutrition & Hydration API Routes
     Route::get('/nutrition', [\App\Http\Controllers\NutritionController::class, 'index']);

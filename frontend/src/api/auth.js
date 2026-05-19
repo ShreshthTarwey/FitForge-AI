@@ -15,4 +15,7 @@ export const authService = {
 
     // Get current authenticated user
     getUser: () => api.get('/api/user'),
+
+    // Update user profile details
+    updateProfile: (profileData) => api.put('/api/user/profile', profileData),
 };

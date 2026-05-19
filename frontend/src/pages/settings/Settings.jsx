@@ -7,12 +7,16 @@ import toast from 'react-hot-toast';
 import { User, Shield, Bell, Moon } from 'lucide-react';
 
 const Settings = () => {
-    const { user } = useAuthStore();
+    const { user, updateProfile } = useAuthStore();
     const [activeTab, setActiveTab] = useState('profile');
 
-    const handleProfileSubmit = (data) => {
-        console.log('Profile updated', data);
-        toast.success('Profile updated successfully!');
+    const handleProfileSubmit = async (data) => {
+        const success = await updateProfile(data);
+        if (success) {
+            toast.success('Profile updated successfully!');
+        } else {
+            toast.error('Failed to update profile.');
+        }
     };
 
     const tabs = [
