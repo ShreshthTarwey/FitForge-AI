@@ -9,12 +9,20 @@ const api = axios.create({
     withCredentials: true,
 });
 
-// Interceptor to add token
+// Interceptor to add token and local date
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Add user's current local date in YYYY-MM-DD format
+    const localDate = new Date();
+    const year = localDate.getFullYear();
+    const month = String(localDate.getMonth() + 1).padStart(2, '0');
+    const day = String(localDate.getDate()).padStart(2, '0');
+    config.headers['X-User-Date'] = `${year}-${month}-${day}`;
+    
     return config;
 });
 

@@ -3,9 +3,11 @@ import { BrowserRouter } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import AppRouter from './routes/router';
 import { useAuthStore } from './store/authStore';
+import { useThemeStore } from './store/useThemeStore';
 
 function App() {
   const { checkAuth } = useAuthStore();
+  const theme = useThemeStore((state) => state.theme);
 
   useEffect(() => {
     checkAuth();

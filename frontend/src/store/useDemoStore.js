@@ -5,7 +5,7 @@ export const useDemoStore = create(
     persist(
         (set, get) => ({
             accentColor: 'emerald', // 'emerald', 'cyan', 'purple'
-            demoMode: true, // Turn on demo mode by default to populate stats beautifully!
+            demoMode: false, // Turn off demo mode by default so users see their real database biometrics!
             widgets: {
                 stats: true,
                 charts: true,
@@ -27,7 +27,7 @@ export const useDemoStore = create(
             
             resetToDefault: () => set({
                 accentColor: 'emerald',
-                demoMode: true,
+                demoMode: false,
                 widgets: {
                     stats: true,
                     charts: true,

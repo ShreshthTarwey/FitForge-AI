@@ -198,7 +198,7 @@ const DashboardOverview = () => {
                             <span className="text-[10px] font-semibold text-slate-500">Live Calibration</span>
                         </div>
                         <h2 className="text-xl font-extrabold text-white tracking-tight leading-snug">
-                            {demoMode ? 'Hypertrophy Day 2: Chest & Lateral Core splits' : (dbData?.recent_workouts?.[0]?.workout_plan ? `Active Program: ${dbData.recent_workouts[0].workout_plan.title}` : 'No active training session configured')}
+                            {demoMode ? 'Hypertrophy Day 2: Chest & Lateral Core splits' : (dbData?.recent_workouts?.[0]?.workout_plan ? `Active Program: ${dbData.recent_workouts[0].workout_plan.title}` : (dbData?.recent_workouts?.[0]?.custom_name ? `Custom Session: ${dbData.recent_workouts[0].custom_name}` : 'No active training session configured'))}
                         </h2>
                         <p className="text-xs text-slate-400 mt-1.5 max-w-lg leading-relaxed">
                             {demoMode ? randomQuote : (dbData?.ai_tips || "Generate a personalized AI workout plan or log your first session to receive smart biological insights.")}
@@ -210,13 +210,13 @@ const DashboardOverview = () => {
                             <div>
                                 <span className="text-slate-500 block text-[9px] font-bold uppercase tracking-wider">Scheduled duration</span>
                                 <span className="font-extrabold text-white flex items-center gap-1 mt-0.5">
-                                    <Timer className="w-3.5 h-3.5 text-slate-400" /> {demoMode ? '60 mins' : `${dbData?.recent_workouts?.[0]?.workout_plan?.duration || 45} mins`}
+                                    <Timer className="w-3.5 h-3.5 text-slate-400" /> {demoMode ? '60 mins' : `${dbData?.recent_workouts?.[0]?.workout_plan?.duration || dbData?.recent_workouts?.[0]?.duration_completed || 45} mins`}
                                 </span>
                             </div>
                             <div>
                                 <span className="text-slate-500 block text-[9px] font-bold uppercase tracking-wider">Target load</span>
                                 <span className="font-extrabold text-white flex items-center gap-1 mt-0.5">
-                                    <Dumbbell className="w-3.5 h-3.5 text-slate-400" /> {demoMode ? 'Hypertrophy' : (dbData?.recent_workouts?.[0]?.workout_plan?.workout_type || 'General')}
+                                    <Dumbbell className="w-3.5 h-3.5 text-slate-400" /> {demoMode ? 'Hypertrophy' : (dbData?.recent_workouts?.[0]?.workout_plan?.workout_type || (dbData?.recent_workouts?.[0]?.custom_name ? 'Custom Split' : 'General'))}
                                 </span>
                             </div>
                         </div>
@@ -234,6 +234,13 @@ const DashboardOverview = () => {
                                 className="px-3.5 py-1.5 text-xs font-bold bg-white text-slate-950 hover:bg-slate-100 rounded-lg flex items-center gap-1 shadow-sm transition-colors cursor-pointer"
                             >
                                 View Current Program <ArrowUpRight className="w-3.5 h-3.5" />
+                            </button>
+                        ) : dbData?.recent_workouts?.[0]?.custom_name ? (
+                            <button
+                                onClick={() => navigate('/logs')}
+                                className="px-3.5 py-1.5 text-xs font-bold bg-white text-slate-950 hover:bg-slate-100 rounded-lg flex items-center gap-1 shadow-sm transition-colors cursor-pointer"
+                            >
+                                View Workout Logs <ArrowUpRight className="w-3.5 h-3.5" />
                             </button>
                         ) : (
                             <button
@@ -260,7 +267,9 @@ const DashboardOverview = () => {
                                     <span className="text-xs text-slate-400 font-semibold">Recovery Rate</span>
                                     <span className="block text-[10px] text-slate-500 mt-0.5">Based on sleep + strain indices</span>
                                 </div>
-                                <span className={`text-sm font-black uppercase ${activeText}`}>{demoMode ? '88% Optimal' : '92% Optimal'}</span>
+                                <span className={`text-sm font-black uppercase ${activeText}`}>
+                                    {demoMode ? '88% OPTIMAL' : `${dbData?.stats?.recovery_rate ?? 92}% ${dbData?.stats?.recovery_rate >= 85 ? 'OPTIMAL' : 'RECOVERING'}`}
+                                </span>
                             </div>
 
                             <div className="flex items-center justify-between pb-3 border-b border-slate-900/50">
@@ -268,7 +277,9 @@ const DashboardOverview = () => {
                                     <span className="text-xs text-slate-400 font-semibold">Hydration Tracker</span>
                                     <span className="block text-[10px] text-slate-500 mt-0.5">Logged current target splits</span>
                                 </div>
-                                <span className="text-sm font-black text-slate-200">{demoMode ? '2,000 / 3,500 ml' : '1,500 / 3,000 ml'}</span>
+                                <span className="text-sm font-black text-slate-200">
+                                    {demoMode ? '2,000 / 3,500 ml' : `${(dbData?.stats?.today_water_intake ?? 0).toLocaleString()} / ${(dbData?.stats?.daily_water_target ?? 3000).toLocaleString()} ml`}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -300,7 +311,7 @@ const DashboardOverview = () => {
                     <StatsCard title="Total Workouts" value={demoMode ? "24" : String(dbData?.stats?.total_workouts ?? 0)} icon={Dumbbell} colorVariant="blue" trend={demoMode ? 12 : 0} delay={0.05} />
                     <StatsCard title="Calories Burned" value={demoMode ? "12,450" : String(dbData?.stats?.calories_burned ?? 0)} icon={Flame} colorVariant="green" trend={demoMode ? 8 : 0} delay={0.1} />
                     <StatsCard title="Current Streak" value={demoMode ? "5 Days" : `${dbData?.stats?.streak_count || user?.streak_count || 0} Days`} icon={Trophy} colorVariant="orange" trend={0} delay={0.15} />
-                    <StatsCard title="Active Plan" value={demoMode ? "Hypertrophy Split" : (dbData?.recent_workouts?.[0]?.workout_plan?.title ?? "None")} icon={Target} colorVariant="purple" delay={0.2} />
+                    <StatsCard title="Active Plan" value={demoMode ? "Hypertrophy Split" : (dbData?.recent_workouts?.[0]?.workout_plan?.title ?? dbData?.recent_workouts?.[0]?.custom_name ?? "None")} icon={Target} colorVariant="purple" delay={0.2} />
                 </div>
             )}
 
@@ -322,7 +333,7 @@ const DashboardOverview = () => {
                         <ActivityFeed activities={demoMode ? mockActivities : (dbData?.recent_workouts || []).map(workout => ({
                             id: workout.id,
                             type: 'workout',
-                            title: `Completed ${workout.workout_plan?.title || 'Workout'}`,
+                            title: `Completed ${workout.workout_plan?.title || workout.custom_name || 'Workout'}`,
                             description: `Burned ${workout.calories_burned} calories in ${workout.duration_completed} minutes`,
                             time: workout.created_at ? new Date(workout.created_at).toLocaleDateString() : 'Just now'
                         }))} />

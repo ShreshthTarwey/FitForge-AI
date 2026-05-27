@@ -1,49 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, Send, X, Bot, Sparkles, Smile } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { aiService } from '../../api/ai';
 
 const initialChat = [
     { sender: 'bot', text: 'Salutations! I am your neural FitForge AI Coach. Ask me about training overloads, target caloric quotients, or target muscle recovery rates.' }
 ];
-
-const prefilledResponses = {
-    'how to gain muscle': 'To optimize skeletal muscle gain (hypertrophy), target 1.6 to 2.2 grams of protein per kilogram of body weight, secure progressive overloading every 7 days, and maintain a caloric surplus of 300 to 500 kcal.',
-    'how to lose weight': 'To shed body fat index, secure a progressive caloric deficit of 300 to 500 kcal, prioritize a high-protein intake (to spare lean tissue), and execute 3 to 5 hybrid HIIT or strength splits per week.',
-    'how much sleep is optimal': 'Muscle protein synthesis and muscle tissue recovery peak during deep slow-wave sleep. Target 8 hours of sleep. Less than 7 hours decreases testosterone and increases cortisol indexes by up to 15%.',
-    'how to recover faster': 'Speed up metabolic recovery rates through: (1) drinking 3.5 liters of water daily, (2) getting 8 hours of sleep, (3) completing active mobility/stretches, and (4) taking 5g of creatine daily.'
-};
 
 const AICoachPanel = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState(initialChat);
     const [input, setInput] = useState('');
     const [isTyping, setIsTyping] = useState(false);
+    const messagesEndRef = useRef(null);
 
-    const handleSend = (e) => {
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    useEffect(() => {
+        if (isOpen) {
+            scrollToBottom();
+        }
+    }, [messages, isTyping, isOpen]);
+
+    const handleSend = async (e) => {
         e.preventDefault();
         if (!input.trim()) return;
 
         const userMsg = input.trim();
+        const currentHistory = [...messages];
+        
         setMessages((prev) => [...prev, { sender: 'user', text: userMsg }]);
         setInput('');
         setIsTyping(true);
 
-        setTimeout(() => {
-            let responseText = "Excellent biometrics query. FitForge AI recommends securing progressive overload splits, sleeping 8 hours, and consuming 2g of protein per kg of bodyweight.";
+        try {
+            const response = await aiService.chat(userMsg, currentHistory);
+            const replyText = response.data.reply || response.data;
             
-            const normalizedQuery = userMsg.toLowerCase();
-            for (const key in prefilledResponses) {
-                if (normalizedQuery.includes(key)) {
-                    responseText = prefilledResponses[key];
-                    break;
-                }
-            }
-
-            setMessages((prev) => [...prev, { sender: 'bot', text: responseText }]);
-            setIsTyping(false);
+            setMessages((prev) => [...prev, { sender: 'bot', text: replyText }]);
             toast.success('FitForge AI Coach has responded!');
-        }, 1500);
+        } catch (error) {
+            console.error('Failed to chat with AI Coach', error);
+            toast.error('AI Coach is taking a break. Please try again.');
+            setMessages((prev) => [...prev, { sender: 'bot', text: "I am having trouble connecting right now. Let me rest a bit and try again." }]);
+        } finally {
+            setIsTyping(false);
+        }
     };
 
     return (
@@ -106,6 +111,7 @@ const AICoachPanel = () => {
                                     </div>
                                 </div>
                             )}
+                            <div ref={messagesEndRef} />
                         </div>
 
                         {/* Input bar */}

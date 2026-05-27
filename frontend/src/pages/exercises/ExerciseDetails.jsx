@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useExerciseStore } from '../../store/useExerciseStore';
+import { useProgressStore } from '../../store/useProgressStore';
 import { useDemoStore } from '../../store/useDemoStore';
 import PageHeader from '../../components/common/PageHeader';
 import Button from '../../components/ui/Button';
@@ -15,9 +16,31 @@ const ExerciseDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { getExerciseById, fetchExercises, exercises } = useExerciseStore();
+    const { addWorkoutLog } = useProgressStore();
     const { accentColor } = useDemoStore();
     const [exercise, setExercise] = useState(null);
     const [activeTab, setActiveTab] = useState('instructions');
+    const [isTraining, setIsTraining] = useState(false);
+    const [elapsedSeconds, setElapsedSeconds] = useState(0);
+    const [loggedFatigue, setLoggedFatigue] = useState('medium');
+
+    useEffect(() => {
+        let interval = null;
+        if (isTraining) {
+            interval = setInterval(() => {
+                setElapsedSeconds((prev) => prev + 1);
+            }, 1000);
+        } else {
+            setElapsedSeconds(0);
+        }
+        return () => clearInterval(interval);
+    }, [isTraining]);
+
+    const formatTime = (totalSec) => {
+        const mins = Math.floor(totalSec / 60);
+        const secs = totalSec % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
 
     useEffect(() => {
         if (exercises.length === 0) {
@@ -45,8 +68,44 @@ const ExerciseDetails = () => {
         .filter(ex => ex.category === exercise.category && ex.id !== exercise.id)
         .slice(0, 3);
 
-    const handleAddToCustomPlan = () => {
-        toast.success(`${exercise.name} added to your active routine!`);
+    const handleStartWorkout = () => {
+        setIsTraining(true);
+        setElapsedSeconds(0);
+        toast.success(`Active workout session started for ${exercise.name}! Start training!`, {
+            icon: '🔥',
+            duration: 4000
+        });
+    };
+
+    const handleFinishWorkout = async () => {
+        try {
+            const duration = Math.max(1, Math.round(elapsedSeconds / 60));
+            const caloriesMultiplier = (exercise.calories || 120) / (exercise.duration || 10);
+            const caloriesBurned = Math.round(duration * caloriesMultiplier);
+
+            const payload = {
+                name: exercise.name,
+                calories: caloriesBurned,
+                duration: duration,
+                fatigue: loggedFatigue,
+                notes: `Completed dynamic training session of ${exercise.name} inside Exercise Library. Standard calibration sets: ${exercise.sets || 4} sets of ${exercise.reps || '10-12'} reps. Actual elapsed duration: ${duration} minutes. Notes: ${exercise.tips || 'Followed perfect form'}`
+            };
+            await addWorkoutLog(payload);
+            toast.success(`Successfully completed! Trained ${duration} min, burned ${caloriesBurned} kcal. Database synced!`, {
+                icon: '🏆',
+                duration: 5000
+            });
+            setIsTraining(false);
+        } catch (error) {
+            console.error("Failed to add exercise to routine logs", error);
+            toast.error("Failed to log session completed.");
+        }
+    };
+
+    const handleCancelWorkout = () => {
+        if (window.confirm("Are you sure you want to cancel the active workout session? Elapsed time will be discarded.")) {
+            setIsTraining(false);
+        }
     };
 
     // Color choices mapping
@@ -89,13 +148,16 @@ const ExerciseDetails = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column: Media & Interactive Tab Board */}
                 <div className="lg:col-span-2 space-y-6">
-                    <Card className="p-0 overflow-hidden relative group">
-                        <div className="aspect-video bg-slate-900 relative flex items-center justify-center cursor-pointer">
-                            <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-950" />
-                            <PlayCircle className="w-20 h-20 text-white/40 group-hover:text-neon-blue group-hover:scale-110 transition-all duration-300 relative z-10" />
-                            <span className="absolute bottom-4 left-4 text-xs font-bold text-white uppercase tracking-widest relative z-10 bg-slate-950/80 px-3 py-1.5 rounded-lg border border-slate-800">
-                                View Interactive Tutorial
-                            </span>
+                    <Card className="p-0 overflow-hidden relative group border-slate-800">
+                        <div className="aspect-video bg-slate-900 relative">
+                            <iframe
+                                className="w-full h-full aspect-video"
+                                src={`https://www.youtube.com/embed/${exercise.youtube_video_id || 'gRVjAtPip0Y'}?modestbranding=1&rel=0`}
+                                title={exercise.name}
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                            />
                         </div>
                     </Card>
 
@@ -190,9 +252,46 @@ const ExerciseDetails = () => {
                             </div>
                         </div>
 
-                        <Button onClick={handleAddToCustomPlan} className="w-full mt-6 py-3 font-bold uppercase tracking-wide">
-                            <Dumbbell className="w-4 h-4 mr-2" /> Add to Routine
-                        </Button>
+                        {isTraining ? (
+                            <div className="space-y-4 mt-6 p-4 rounded-xl border border-neon-green/30 bg-neon-green/5 text-center animate-in fade-in zoom-in duration-300">
+                                <div className="flex items-center justify-center gap-2 mb-1">
+                                    <span className="w-2 h-2 rounded-full bg-red-500 animate-ping shrink-0" />
+                                    <span className="text-[10px] font-black text-neon-green uppercase tracking-widest">Active Workout Session</span>
+                                </div>
+                                <div className="text-3xl font-black font-mono text-white tracking-wider animate-pulse">
+                                    {formatTime(elapsedSeconds)}
+                                </div>
+                                <div className="text-[10px] text-slate-500 leading-normal">
+                                    Keep training! Calories burned and time will scale dynamically.
+                                </div>
+                                
+                                <div className="text-left mt-2 space-y-1.5">
+                                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest">Select Strain / Fatigue</label>
+                                    <select
+                                        value={loggedFatigue}
+                                        onChange={(e) => setLoggedFatigue(e.target.value)}
+                                        className="block w-full rounded-lg border-0 bg-slate-950 py-2 px-3 text-white ring-1 ring-inset ring-slate-850 focus:ring-2 focus:ring-neon-green text-xs"
+                                    >
+                                        <option value="low">Low Fatigue (Active Recovery)</option>
+                                        <option value="medium">Medium Fatigue (Standard Strain)</option>
+                                        <option value="high">High Fatigue (To Absolute Failure)</option>
+                                    </select>
+                                </div>
+
+                                <div className="flex gap-2 mt-4">
+                                    <Button onClick={handleFinishWorkout} className="flex-1 bg-neon-green text-slate-950 hover:bg-neon-green/90 font-bold uppercase text-[10px] py-2 tracking-wider">
+                                        Finish
+                                    </Button>
+                                    <Button variant="outline" onClick={handleCancelWorkout} className="flex-1 border-red-500/30 text-red-400 hover:bg-red-500/10 font-bold uppercase text-[10px] py-2 tracking-wider">
+                                        Cancel
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <Button onClick={handleStartWorkout} className="w-full mt-6 py-3.5 font-bold uppercase tracking-wide bg-gradient-to-r from-neon-green to-neon-blue hover:scale-[1.02] active:scale-[0.98] transition-all duration-300">
+                                <PlayCircle className="w-4 h-4 mr-2" /> Start Workout
+                            </Button>
+                        )}
                     </Card>
 
                     {/* Similar Exercises list */}

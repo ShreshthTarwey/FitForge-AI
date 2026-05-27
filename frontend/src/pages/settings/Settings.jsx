@@ -3,11 +3,13 @@ import PageHeader from '../../components/common/PageHeader';
 import Card from '../../components/ui/Card';
 import ProfileForm from '../../components/settings/ProfileForm';
 import { useAuthStore } from '../../store/authStore';
+import { useThemeStore } from '../../store/useThemeStore';
 import toast from 'react-hot-toast';
 import { User, Shield, Bell, Moon } from 'lucide-react';
 
 const Settings = () => {
     const { user, updateProfile } = useAuthStore();
+    const { theme, toggleTheme } = useThemeStore();
     const [activeTab, setActiveTab] = useState('profile');
 
     const handleProfileSubmit = async (data) => {
@@ -67,15 +69,23 @@ const Settings = () => {
                         <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                             <Card>
                                 <h3 className="text-xl font-bold text-white mb-6">App Preferences</h3>
-                                <p className="text-slate-400 mb-4">Theme and layout settings will go here.</p>
+                                <p className="text-slate-400 mb-4">Customize your visual environment.</p>
                                 <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
                                     <div>
                                         <p className="font-semibold text-white">Dark Mode</p>
-                                        <p className="text-xs text-slate-400">The app currently defaults to dark mode.</p>
+                                        <p className="text-xs text-slate-400">Toggle between light and dark modes.</p>
                                     </div>
-                                    <div className="w-12 h-6 bg-neon-green rounded-full relative cursor-pointer opacity-50 cursor-not-allowed">
-                                        <div className="w-5 h-5 bg-slate-900 rounded-full absolute right-0.5 top-0.5" />
-                                    </div>
+                                    <button 
+                                        type="button"
+                                        onClick={toggleTheme}
+                                        className={`w-12 h-6 rounded-full relative cursor-pointer transition-all duration-300 ${
+                                            theme === 'dark' ? 'bg-neon-green' : 'bg-slate-700'
+                                        }`}
+                                    >
+                                        <div className={`w-5 h-5 bg-slate-950 rounded-full absolute top-0.5 transition-all duration-300 ${
+                                            theme === 'dark' ? 'right-0.5' : 'left-0.5'
+                                        }`} />
+                                    </button>
                                 </div>
                             </Card>
                         </div>

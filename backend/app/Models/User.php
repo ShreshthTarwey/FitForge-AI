@@ -32,6 +32,12 @@ class User extends Authenticatable
         'streak_count',
         'height',
         'weight',
+        'daily_water_target',
+        'daily_calorie_target',
+        'daily_protein_target',
+        'daily_carbs_target',
+        'daily_fats_target',
+        'monthly_burn_target',
     ];
 
     /**

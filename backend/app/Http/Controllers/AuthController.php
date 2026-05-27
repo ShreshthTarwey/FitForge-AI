@@ -77,6 +77,12 @@ class AuthController extends Controller
             'weight' => 'nullable|integer|min:20|max:500',
             'experience_level' => 'nullable|string',
             'weekly_workout_frequency' => 'nullable|integer|min:1|max:7',
+            'daily_water_target' => 'nullable|integer|min:500|max:10000',
+            'daily_calorie_target' => 'nullable|integer|min:500|max:10000',
+            'daily_protein_target' => 'nullable|integer|min:10|max:1000',
+            'daily_carbs_target' => 'nullable|integer|min:10|max:2000',
+            'daily_fats_target' => 'nullable|integer|min:5|max:500',
+            'monthly_burn_target' => 'nullable|integer|min:500|max:100000',
         ]);
 
         // Prevent clearing the email if it is not sent or is null

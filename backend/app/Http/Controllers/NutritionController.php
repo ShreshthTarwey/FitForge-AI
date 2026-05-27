@@ -14,7 +14,10 @@ class NutritionController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $today = Carbon::today()->toDateString();
+        $today = $request->header('X-User-Date') ?? Carbon::today()->toDateString();
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $today)) {
+            $today = Carbon::today()->toDateString();
+        }
 
         $meals = Meal::where('user_id', $user->id)
             ->where('logged_at', $today)
@@ -36,13 +39,13 @@ class NutritionController extends Controller
             'meals' => $meals,
             'waterIntake' => (int)$waterIntake,
             'sleepHours' => $sleepHours,
-            'waterTarget' => 3500, // liters/ml target standard
+            'waterTarget' => $user->daily_water_target ?: 3500,
             'sleepTarget' => 8.0,
             'macroTarget' => [
-                'calories' => 2500,
-                'protein' => 160,
-                'carbs' => 250,
-                'fats' => 70
+                'calories' => $user->daily_calorie_target ?: 2500,
+                'protein' => $user->daily_protein_target ?: (int) (($user->daily_calorie_target ?: 2500) * 0.25 / 4),
+                'carbs' => $user->daily_carbs_target ?: (int) (($user->daily_calorie_target ?: 2500) * 0.50 / 4),
+                'fats' => $user->daily_fats_target ?: (int) (($user->daily_calorie_target ?: 2500) * 0.25 / 9)
             ]
         ]);
     }
@@ -50,7 +53,10 @@ class NutritionController extends Controller
     public function logMeal(Request $request)
     {
         $user = $request->user();
-        $today = Carbon::today()->toDateString();
+        $today = $request->header('X-User-Date') ?? Carbon::today()->toDateString();
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $today)) {
+            $today = Carbon::today()->toDateString();
+        }
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -105,7 +111,10 @@ class NutritionController extends Controller
     public function logWater(Request $request)
     {
         $user = $request->user();
-        $today = Carbon::today()->toDateString();
+        $today = $request->header('X-User-Date') ?? Carbon::today()->toDateString();
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $today)) {
+            $today = Carbon::today()->toDateString();
+        }
 
         $request->validate([
             'amount_ml' => 'required|integer|min:1|max:2000'
@@ -131,7 +140,10 @@ class NutritionController extends Controller
     public function resetWater(Request $request)
     {
         $user = $request->user();
-        $today = Carbon::today()->toDateString();
+        $today = $request->header('X-User-Date') ?? Carbon::today()->toDateString();
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $today)) {
+            $today = Carbon::today()->toDateString();
+        }
 
         WaterLog::where('user_id', $user->id)
             ->where('logged_at', $today)
@@ -147,7 +159,10 @@ class NutritionController extends Controller
     public function logSleep(Request $request)
     {
         $user = $request->user();
-        $today = Carbon::today()->toDateString();
+        $today = $request->header('X-User-Date') ?? Carbon::today()->toDateString();
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $today)) {
+            $today = Carbon::today()->toDateString();
+        }
 
         $request->validate([
             'hours' => 'required|numeric|min:0|max:24'

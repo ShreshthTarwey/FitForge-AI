@@ -7,10 +7,17 @@ const iconsMap = {
     warrior: { icon: Zap, color: 'text-neon-green bg-neon-green/10 border-neon-green/20' },
     nutri_master: { icon: Award, color: 'text-purple-500 bg-purple-500/10 border-purple-500/20' },
     perfect_week: { icon: Star, color: 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20' },
+    
+    // DB Icons Mapping
+    flame: { icon: Flame, color: 'text-orange-500 bg-orange-500/10 border-orange-500/20' },
+    trophy: { icon: Trophy, color: 'text-neon-blue bg-neon-blue/10 border-neon-blue/20' },
+    medal: { icon: Zap, color: 'text-neon-green bg-neon-green/10 border-neon-green/20' },
+    award: { icon: Award, color: 'text-purple-500 bg-purple-500/10 border-purple-500/20' },
+    star: { icon: Star, color: 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20' }
 };
 
-const BadgeCard = ({ badgeId, title, description, isUnlocked }) => {
-    const config = iconsMap[badgeId] || { icon: Target, color: 'text-slate-500 bg-slate-800/50 border-slate-700/50' };
+const BadgeCard = ({ badgeId, title, description, isUnlocked, icon }) => {
+    const config = iconsMap[badgeId] || iconsMap[icon] || { icon: Target, color: 'text-slate-500 bg-slate-800/50 border-slate-700/50' };
     const IconComponent = config.icon;
 
     return (

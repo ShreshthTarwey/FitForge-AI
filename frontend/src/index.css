@@ -1,10 +1,69 @@
 @import "tailwindcss";
 
+:root {
+  /* Dark theme colors (default) */
+  --bg-950: #080b11;
+  --bg-900: #0f172a;
+  --bg-800: #1e293b;
+  --bg-700: #334155;
+  --bg-600: #475569;
+  --bg-500: #64748b;
+  --bg-400: #94a3b8;
+  --bg-300: #cbd5e1;
+  --bg-200: #e2e8f0;
+  --bg-100: #f1f5f9;
+
+  --text-white: #ffffff;
+  --text-slate-100: #f1f5f9;
+  --text-slate-200: #e2e8f0;
+  --text-slate-300: #cbd5e1;
+  --text-slate-400: #94a3b8;
+  --text-slate-500: #64748b;
+
+  --glass-bg: rgba(15, 23, 42, 0.45);
+  --glass-card-bg: rgba(15, 23, 42, 0.25);
+  --glass-border: rgba(255, 255, 255, 0.04);
+}
+
+.light {
+  /* Light theme colors */
+  --bg-950: #f8fafc;
+  --bg-900: #f1f5f9;
+  --bg-800: #e2e8f0;
+  --bg-700: #cbd5e1;
+  --bg-600: #94a3b8;
+  --bg-500: #64748b;
+  --bg-400: #475569;
+  --bg-300: #334155;
+  --bg-200: #1e293b;
+  --bg-100: #0f172a;
+
+  --text-white: #0f172a;
+  --text-slate-100: #1e293b;
+  --text-slate-200: #334155;
+  --text-slate-300: #475569;
+  --text-slate-400: #627288;
+  --text-slate-500: #8898aa;
+
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-card-bg: rgba(255, 255, 255, 0.45);
+  --glass-border: rgba(0, 0, 0, 0.08);
+}
+
 @theme {
-  --color-slate-950: #080b11;
-  --color-slate-900: #0f172a;
-  --color-slate-800: #1e293b;
-  --color-slate-700: #334155;
+  --color-slate-950: var(--bg-950);
+  --color-slate-900: var(--bg-900);
+  --color-slate-800: var(--bg-800);
+  --color-slate-700: var(--bg-700);
+  --color-slate-600: var(--bg-600);
+  --color-slate-500: var(--bg-500);
+  --color-slate-400: var(--bg-400);
+  --color-slate-300: var(--bg-300);
+  --color-slate-200: var(--bg-200);
+  --color-slate-100: var(--bg-100);
+
+  --color-white: var(--text-white);
+
   --color-neon-green: #10b981; /* High-fidelity emerald green */
   --color-neon-blue: #0ea5e9;  /* Elegant deep sky blue */
   
@@ -13,30 +72,31 @@
 
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-100 font-sans antialiased selection:bg-neon-blue selection:text-slate-950;
+    @apply bg-slate-950 text-slate-100 font-sans antialiased selection:bg-neon-blue selection:text-slate-950 transition-colors duration-300;
     letter-spacing: -0.011em;
   }
 }
 
 @layer utilities {
   .glass {
-    background: rgba(15, 23, 42, 0.45);
+    background: var(--glass-bg);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
+    transition: background 0.3s, border 0.3s;
   }
   .glass-card {
-    background: rgba(15, 23, 42, 0.25);
+    background: var(--glass-card-bg);
     backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.6);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.15);
     border-radius: 16px;
     padding: 24px;
     transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .glass-card:hover {
-    border-color: rgba(255, 255, 255, 0.09);
-    background: rgba(30, 41, 59, 0.15);
+    border-color: var(--glass-border);
+    background: var(--glass-bg);
     transform: translateY(-2px);
   }
   .text-gradient {

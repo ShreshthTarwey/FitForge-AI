@@ -17,16 +17,44 @@ const mockPlans = [
 
 const WorkoutPlans = () => {
     const navigate = useNavigate();
-    const { categories, fetchCategories, plans, isLoading } = useWorkoutStore();
+    const { categories, fetchCategories, plans, fetchPlans, isLoading } = useWorkoutStore();
     const [view, setView] = useState('plans'); // 'plans' | 'categories'
+    const [categoryFilter, setCategoryFilter] = useState('All');
 
     useEffect(() => {
         fetchCategories();
-    }, [fetchCategories]);
+        fetchPlans();
+    }, [fetchCategories, fetchPlans]);
 
     const handleViewPlan = (plan) => {
         navigate(`/workouts/${plan.id}`, { state: { plan } });
     };
+
+    // Filter plans dynamically based on category
+    const displayedPlans = [...plans, ...mockPlans].filter(plan => {
+        if (categoryFilter === 'All') return true;
+        
+        if (categoryFilter === 'AI Generated Plans') {
+            return plan.is_generated === true || plan.is_generated === 1 || String(plan.title || '').toLowerCase().includes('ai generated');
+        }
+        
+        const type = plan.workout_type || plan.goal || '';
+        
+        if (categoryFilter.toLowerCase().includes('strength') && (type.toLowerCase().includes('strength') || type.toLowerCase().includes('muscle'))) {
+            return true;
+        }
+        if (categoryFilter.toLowerCase().includes('hiit') && (type.toLowerCase().includes('hiit') || type.toLowerCase().includes('weight') || type.toLowerCase().includes('cardio'))) {
+            return true;
+        }
+        if (categoryFilter.toLowerCase().includes('yoga') && (type.toLowerCase().includes('yoga') || type.toLowerCase().includes('flexibility') || type.toLowerCase().includes('mobility'))) {
+            return true;
+        }
+        if (categoryFilter.toLowerCase().includes('bodyweight') && (type.toLowerCase().includes('bodyweight') || type.toLowerCase().includes('strength') || type.toLowerCase().includes('general'))) {
+            return true;
+        }
+        
+        return false;
+    });
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500 pb-8">
@@ -58,7 +86,21 @@ const WorkoutPlans = () => {
 
             {view === 'plans' && (
                 <div>
-                    <div className="flex justify-end mb-4">
+                    <div className="flex justify-between items-center mb-4">
+                        {categoryFilter !== 'All' ? (
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold bg-neon-green/10 border border-neon-green/20 text-neon-green px-3 py-1 rounded-lg">
+                                    Category: {categoryFilter}
+                                </span>
+                                <button 
+                                    onClick={() => setCategoryFilter('All')} 
+                                    className="text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+                                >
+                                    Clear Filter
+                                </button>
+                            </div>
+                        ) : <div />}
+                        
                         <Button variant="ghost" className="text-slate-400">
                             <Filter className="w-4 h-4 mr-2" />
                             Filter
@@ -67,9 +109,9 @@ const WorkoutPlans = () => {
 
                     {isLoading ? (
                         <Loader />
-                    ) : (plans.length > 0 || mockPlans.length > 0) ? (
+                    ) : displayedPlans.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {[...plans, ...mockPlans].map((plan, i) => (
+                            {displayedPlans.map((plan, i) => (
                                 <div key={plan.id || i} className="animate-in fade-in slide-in-from-bottom-4" style={{ animationDelay: `${i * 100}ms`, animationFillMode: 'both' }}>
                                     <WorkoutCard plan={plan} onView={handleViewPlan} />
                                 </div>
@@ -95,7 +137,10 @@ const WorkoutPlans = () => {
                             description={category.description} 
                             imageGradient={category.gradient}
                             delay={i * 0.1}
-                            onClick={() => console.log('Category clicked', category.id)}
+                            onClick={() => {
+                                setCategoryFilter(category.title);
+                                setView('plans');
+                            }}
                         />
                     ))}
                 </div>

@@ -6,4 +6,6 @@ export const progressService = {
     logWorkout: (data) => api.post('/api/progress/log', data),
     logWeight: (data) => api.post('/api/progress/weight', data),
     updateGoals: (data) => api.put('/api/progress/goals', data),
+    deleteWorkoutLog: (id) => api.delete(`/api/progress/log/${id}`),
+    updateWorkoutLog: (id, data) => api.put(`/api/progress/log/${id}`, data),
 };

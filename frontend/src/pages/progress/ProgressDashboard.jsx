@@ -11,21 +11,20 @@ import BadgeCard from '../../components/gamification/BadgeCard';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
-import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 import { Activity, Flame, ShieldAlert, Award, Calendar, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // Dynamic data will be generated in the component body
 const badgePresets = [
-    { id: 'streak_7', title: '7 Day Streak', description: 'Log training splits 7 days in a row' },
-    { id: 'cal_10k', title: 'Calorie Shredder', description: 'Surpass 1,000 total calories burned' },
-    { id: 'warrior', title: 'Workout Warrior', description: 'Complete your first training session' },
-    { id: 'nutri_master', title: 'Macro Master', description: 'Log a balanced macro profile meal' },
-    { id: 'perfect_week', title: 'Perfect Week', description: 'Complete all active plans on schedule' }
+    { id: 'streak_7', title: '7 Day Streak', description: 'Log training splits 7 days in a row', icon: 'flame' },
+    { id: 'cal_10k', title: 'Calorie Shredder', description: 'Surpass 1,000 total calories burned', icon: 'trophy' },
+    { id: 'warrior', title: 'Workout Warrior', description: 'Complete your first training session', icon: 'medal' },
+    { id: 'nutri_master', title: 'Macro Master', description: 'Log a balanced macro profile meal', icon: 'award' },
+    { id: 'perfect_week', title: 'Perfect Week', description: 'Complete all active plans on schedule', icon: 'star' }
 ];
 
 const ProgressDashboard = () => {
-    const { fetchProgressData, isLoading, weightHistory, workoutHistory, goals, currentWeight, targetWeight, addWeightEntry } = useProgressStore();
+    const { fetchProgressData, isLoading, weightHistory, workoutHistory, goals, currentWeight, targetWeight, addWeightEntry, achievements, unlockedAchievements } = useProgressStore();
     const { badges, addXp } = useAuthStore();
     const navigate = useNavigate();
 
@@ -52,27 +51,16 @@ const ProgressDashboard = () => {
     const consistencyHeatmap = Array.from({ length: 24 }).map((_, index) => {
         const date = new Date();
         date.setDate(date.getDate() - (23 - index));
-        const dateString = date.toISOString().split('T')[0];
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateString = `${year}-${month}-${day}`;
         const wasCompleted = activeWorkoutHistory.some(log => log.date === dateString);
         return {
             day: index + 1,
             completed: wasCompleted
         };
     });
-
-    // 2. Dynamic Muscle Focus Split based on logged names
-    const chestCount = activeWorkoutHistory.filter(log => /push|chest|bench/i.test(log.name)).length;
-    const backCount = activeWorkoutHistory.filter(log => /pull|back|row/i.test(log.name)).length;
-    const legsCount = activeWorkoutHistory.filter(log => /legs|lower|squat|quad/i.test(log.name)).length;
-    const coreCount = activeWorkoutHistory.filter(log => /core|shoulder|hiit|cardio|abs/i.test(log.name)).length;
-    const totalCount = chestCount + backCount + legsCount + coreCount || 4;
-
-    const muscleData = [
-        { name: 'Chest', value: Math.round(((chestCount || 1) / totalCount) * 100), color: '#39ff14' },
-        { name: 'Back', value: Math.round(((backCount || 1) / totalCount) * 100), color: '#00f3ff' },
-        { name: 'Legs', value: Math.round(((legsCount || 1) / totalCount) * 100), color: '#f97316' },
-        { name: 'Core & Shoulders', value: Math.round(((coreCount || 1) / totalCount) * 100), color: '#a855f7' }
-    ];
 
     // 3. Dynamic Achievement Badge Unlocking
     const totalCalBurned = activeWorkoutHistory.reduce((sum, log) => sum + (log.calories || 0), 0);
@@ -157,7 +145,7 @@ const ProgressDashboard = () => {
                                 unit={activeGoals.weeklyWorkouts.unit}
                             />
                             <GoalProgressCard 
-                                title="Monthly Calories"
+                                title="Monthly Calorie Burning"
                                 current={activeGoals.monthlyCalories.current}
                                 target={activeGoals.monthlyCalories.target}
                                 unit={activeGoals.monthlyCalories.unit}
@@ -179,72 +167,29 @@ const ProgressDashboard = () => {
                         <MonthlyProgressChart data={activeWeightHistory} />
                     </div>
 
-                    {/* Muscle focus distribution & Heatmap side-by-side */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Muscle Distribution pie chart */}
-                        <Card className="p-6 border-slate-800/80 bg-slate-900/40 backdrop-blur-xl">
-                            <h3 className="text-md font-bold text-white mb-4">Muscle Focus Split</h3>
-                            <div className="h-44 relative flex items-center justify-center">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={muscleData}
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius={45}
-                                            outerRadius={60}
-                                            paddingAngle={3}
-                                            dataKey="value"
-                                        >
-                                            {muscleData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={entry.color} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                                <div className="absolute text-center">
-                                    <span className="text-2xl font-black text-white">4</span>
-                                    <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-0.5">Target Zones</p>
-                                </div>
-                            </div>
-                            
-                            <div className="grid grid-cols-2 gap-2 mt-4 text-xs font-semibold text-slate-400">
-                                {muscleData.map(item => (
-                                    <div key={item.name} className="flex items-center gap-1.5">
-                                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                                        <span>{item.name} ({item.value}%)</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </Card>
-
-                        {/* Consistency heatmap */}
-                        <Card className="p-6 border-slate-800/80 bg-slate-900/40 backdrop-blur-xl flex flex-col justify-between">
-                            <div>
-                                <h3 className="text-md font-bold text-white mb-2">Consistency Heatmap</h3>
-                                <p className="text-xs text-slate-500 mb-4">Your workout commit history over the last 24 days.</p>
-                                <div className="grid grid-cols-6 gap-2 max-w-xs mx-auto">
-                                    {consistencyHeatmap.map(cell => (
-                                        <div 
-                                            key={cell.day} 
-                                            className={`aspect-square rounded-md border transition-all ${
-                                                cell.completed 
-                                                ? 'bg-neon-green/30 border-neon-green/40 shadow-[0_0_8px_rgba(57,255,20,0.15)]' 
-                                                : 'bg-slate-950 border-slate-800/80'
-                                            }`}
-                                            title={`Day ${cell.day}: ${cell.completed ? 'Workout Completed' : 'Rest Day'}`}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                            
-                            <div className="flex justify-between items-center text-xs font-semibold text-slate-500 mt-4">
-                                <span>Rest Day</span>
-                                <span>Completed Session</span>
-                            </div>
-                        </Card>
-                    </div>
+                    {/* Consistency heatmap */}
+                    <Card className="p-6 border-slate-800/80 bg-slate-900/40 backdrop-blur-xl">
+                        <h3 className="text-md font-bold text-white mb-2">Consistency Heatmap</h3>
+                        <p className="text-xs text-slate-500 mb-6">Your workout commit history over the last 24 days.</p>
+                        <div className="grid grid-cols-12 gap-3 max-w-xl mx-auto">
+                            {consistencyHeatmap.map(cell => (
+                                <div 
+                                    key={cell.day} 
+                                    className={`aspect-square rounded-md border transition-all ${
+                                        cell.completed 
+                                        ? 'bg-neon-green/30 border-neon-green/40 shadow-[0_0_8px_rgba(57,255,20,0.15)]' 
+                                        : 'bg-slate-950 border-slate-800/80'
+                                    }`}
+                                    title={`Day ${cell.day}: ${cell.completed ? 'Workout Completed' : 'Rest Day'}`}
+                                />
+                            ))}
+                        </div>
+                        
+                        <div className="flex justify-between items-center text-xs font-semibold text-slate-500 mt-6 pt-4 border-t border-slate-900">
+                            <span>Rest Day</span>
+                            <span>Completed Session</span>
+                        </div>
+                    </Card>
 
                     {/* Timeline History */}
                     <WorkoutHistoryTimeline history={activeWorkoutHistory} />
@@ -255,12 +200,15 @@ const ProgressDashboard = () => {
                             <Award className="w-5 h-5 text-neon-green" /> Unlocked Achievements
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {badgePresets.map((badge) => {
-                                const isUnlocked = unlockedBadges.includes(badge.id);
+                            {(achievements && achievements.length > 0 ? achievements : badgePresets).map((badge) => {
+                                const isUnlocked = achievements && achievements.length > 0
+                                    ? unlockedAchievements?.includes(badge.id)
+                                    : unlockedBadges.includes(badge.id);
                                 return (
                                     <BadgeCard 
                                         key={badge.id}
                                         badgeId={badge.id}
+                                        icon={badge.icon}
                                         title={badge.title}
                                         description={badge.description}
                                         isUnlocked={isUnlocked}

@@ -13,12 +13,67 @@ import toast from 'react-hot-toast';
 const NutritionDashboard = () => {
     const navigate = useNavigate();
     const { meals, waterIntake, waterTarget, sleepHours, sleepTarget, macroTarget, addWater, resetWater, logSleep, deleteMeal, getDailyTotals, fetchNutritionData } = useNutritionStore();
-    const { addXp } = useAuthStore();
+    const { addXp, updateProfile } = useAuthStore();
     const [sleepInput, setSleepInput] = useState(sleepHours);
+    const [isEditingMacros, setIsEditingMacros] = useState(false);
+    const [calorieInput, setCalorieInput] = useState('');
+    const [proteinInput, setProteinInput] = useState('');
+    const [carbsInput, setCarbsInput] = useState('');
+    const [fatsInput, setFatsInput] = useState('');
 
     useEffect(() => {
         fetchNutritionData();
     }, []);
+
+    const handleStartEditMacros = () => {
+        setCalorieInput(macroTarget.calories || 2500);
+        setProteinInput(macroTarget.protein || 150);
+        setCarbsInput(macroTarget.carbs || 250);
+        setFatsInput(macroTarget.fats || 70);
+        setIsEditingMacros(true);
+    };
+
+    const handleMacrosSubmit = async () => {
+        const calVal = Number(calorieInput);
+        const protVal = Number(proteinInput);
+        const carbVal = Number(carbsInput);
+        const fatVal = Number(fatsInput);
+
+        if (isNaN(calVal) || calVal < 500 || calVal > 10000) {
+            toast.error('Calorie goal must be between 500 and 10000 kcal');
+            return;
+        }
+        if (isNaN(protVal) || protVal < 10 || protVal > 1000) {
+            toast.error('Protein goal must be between 10g and 1000g');
+            return;
+        }
+        if (isNaN(carbVal) || carbVal < 10 || carbVal > 2000) {
+            toast.error('Carbs goal must be between 10g and 2000g');
+            return;
+        }
+        if (isNaN(fatVal) || fatVal < 5 || fatVal > 500) {
+            toast.error('Fats goal must be between 5g and 500g');
+            return;
+        }
+
+        try {
+            const success = await updateProfile({
+                daily_calorie_target: calVal,
+                daily_protein_target: protVal,
+                daily_carbs_target: carbVal,
+                daily_fats_target: fatVal
+            });
+            if (success) {
+                toast.success('Macros and calorie targets updated successfully!');
+                setIsEditingMacros(false);
+                fetchNutritionData();
+            } else {
+                toast.error('Failed to update targets.');
+            }
+        } catch (err) {
+            toast.error('Error updating targets.');
+        }
+    };
 
     const totals = getDailyTotals();
     const calPercentage = Math.round((totals.calories / macroTarget.calories) * 100) || 0;
@@ -60,8 +115,18 @@ const NutritionDashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Calories Progress Circle & Macros */}
                 <Card className="p-6 border-slate-800/80 bg-slate-900/40 backdrop-blur-xl relative overflow-hidden group">
-                    <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-                        <Apple className="w-5 h-5 text-neon-green" /> Daily Calorie Goal
+                    <h3 className="text-lg font-bold text-white mb-6 flex items-center justify-between gap-2">
+                        <span className="flex items-center gap-2">
+                            <Apple className="w-5 h-5 text-neon-green" /> Daily Calorie Goal
+                        </span>
+                        {!isEditingMacros && (
+                            <button
+                                onClick={handleStartEditMacros}
+                                className="text-xs font-bold text-neon-green flex items-center gap-1 hover:underline focus:outline-none"
+                            >
+                                Edit Goal
+                            </button>
+                        )}
                     </h3>
                     
                     <div className="h-48 relative flex items-center justify-center mb-6">
@@ -134,6 +199,65 @@ const NutritionDashboard = () => {
                             </div>
                         </div>
                     </div>
+                    {isEditingMacros && (
+                        <div className="mt-4 p-4 bg-slate-950/60 rounded-xl border border-slate-900 space-y-3 animate-in slide-in-from-top-2 duration-300">
+                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Configure Daily Targets</h4>
+                            
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-1">Calories (kcal)</label>
+                                    <input
+                                        type="number"
+                                        value={calorieInput}
+                                        onChange={(e) => setCalorieInput(e.target.value)}
+                                        className="block w-full rounded-lg border-0 bg-slate-900 py-1 px-2 text-white ring-1 ring-inset ring-slate-850 focus:ring-2 focus:ring-neon-green text-xs"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-1">Protein (g)</label>
+                                    <input
+                                        type="number"
+                                        value={proteinInput}
+                                        onChange={(e) => setProteinInput(e.target.value)}
+                                        className="block w-full rounded-lg border-0 bg-slate-900 py-1 px-2 text-white ring-1 ring-inset ring-slate-850 focus:ring-2 focus:ring-neon-green text-xs"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-1">Carbs (g)</label>
+                                    <input
+                                        type="number"
+                                        value={carbsInput}
+                                        onChange={(e) => setCarbsInput(e.target.value)}
+                                        className="block w-full rounded-lg border-0 bg-slate-900 py-1 px-2 text-white ring-1 ring-inset ring-slate-850 focus:ring-2 focus:ring-neon-green text-xs"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-1">Fats (g)</label>
+                                    <input
+                                        type="number"
+                                        value={fatsInput}
+                                        onChange={(e) => setFatsInput(e.target.value)}
+                                        className="block w-full rounded-lg border-0 bg-slate-900 py-1 px-2 text-white ring-1 ring-inset ring-slate-850 focus:ring-2 focus:ring-neon-green text-xs"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-2 pt-1">
+                                <button
+                                    onClick={() => setIsEditingMacros(false)}
+                                    className="px-2.5 py-1 rounded bg-slate-800 text-slate-400 text-xs font-bold hover:bg-slate-700 transition-all cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleMacrosSubmit}
+                                    className="px-2.5 py-1 rounded bg-neon-green text-slate-950 text-xs font-bold hover:bg-neon-green/90 transition-all cursor-pointer"
+                                >
+                                    Save Goals
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </Card>
 
                 {/* Hydration Tracker Card */}

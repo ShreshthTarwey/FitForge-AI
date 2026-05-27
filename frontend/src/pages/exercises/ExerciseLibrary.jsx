@@ -38,9 +38,10 @@ const ExerciseLibrary = () => {
 
     // Filter exercises dynamically combining search bar + tags
     const allFiltered = getFilteredExercises().filter(ex => {
-        const matchesCategory = selectedCategory === 'All' || ex.category.toLowerCase() === selectedCategory.toLowerCase();
-        const matchesDifficulty = selectedDifficulty === 'All' || ex.difficulty.toLowerCase() === selectedDifficulty.toLowerCase();
-        const matchesEquipment = selectedEquipment === 'All' || ex.equipment.toLowerCase().includes(selectedEquipment.toLowerCase());
+        if (!ex) return false;
+        const matchesCategory = selectedCategory === 'All' || (ex.category && typeof ex.category === 'string' && ex.category.toLowerCase() === selectedCategory.toLowerCase());
+        const matchesDifficulty = selectedDifficulty === 'All' || (ex.difficulty && typeof ex.difficulty === 'string' && ex.difficulty.toLowerCase() === selectedDifficulty.toLowerCase());
+        const matchesEquipment = selectedEquipment === 'All' || (ex.equipment && typeof ex.equipment === 'string' && ex.equipment.toLowerCase().includes(selectedEquipment.toLowerCase()));
         return matchesCategory && matchesDifficulty && matchesEquipment;
     });
 

@@ -4,6 +4,16 @@ import MuscleGroupBadge from './MuscleGroupBadge';
 import { PlayCircle } from 'lucide-react';
 
 const ExerciseCard = ({ exercise, onClick }) => {
+    const getThumbnailUrl = (ex) => {
+        if (ex.thumbnail) return ex.thumbnail;
+        if (ex.youtube_video_id) {
+            return `https://i.ytimg.com/vi/${ex.youtube_video_id}/mqdefault.jpg`;
+        }
+        return null;
+    };
+
+    const thumbnailUrl = getThumbnailUrl(exercise);
+
     return (
         <motion.div
             whileHover={{ y: -4 }}
@@ -13,10 +23,14 @@ const ExerciseCard = ({ exercise, onClick }) => {
             <Card className="h-full flex flex-col overflow-hidden p-0 group">
                 {/* Image Placeholder */}
                 <div className="relative h-40 bg-slate-800 flex items-center justify-center overflow-hidden">
-                    {exercise.thumbnail ? (
+                    {thumbnailUrl ? (
                         <img 
-                            src={exercise.thumbnail} 
+                            src={thumbnailUrl} 
                             alt={exercise.name} 
+                            onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = `https://i.ytimg.com/vi/${exercise.youtube_video_id}/default.jpg`;
+                            }}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                     ) : (

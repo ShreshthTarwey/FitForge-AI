@@ -121,7 +121,7 @@ const WorkoutDetails = () => {
                 
                 <div className="space-y-6">
                     <div className="sticky top-24">
-                        <Button className="w-full h-14 text-lg font-bold shadow-[0_0_15px_rgba(57,255,20,0.4)]" onClick={() => navigate(`/workouts/${id}/active`)}>
+                        <Button className="w-full h-14 text-lg font-bold shadow-[0_0_15px_rgba(57,255,20,0.4)]" onClick={() => navigate(`/workouts/${id}/live`, { state: { plan: workout } })}>
                             <Play className="w-5 h-5 mr-2 fill-current" />
                             Start Workout
                         </Button>

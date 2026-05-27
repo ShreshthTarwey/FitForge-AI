@@ -73,8 +73,52 @@ export const mockExercisesDataset = [
     { id: 50, name: 'Dumbbell Devil Press', category: 'Full Body', target_muscles: ['Chest', 'Shoulders', 'Cardio'], difficulty: 'Advanced', calories: 180, duration: 10, equipment: 'Dumbbells', instructions: ['Perform burpee holding dumbbells.', 'Jump feet forward, swing dumbbells back between legs, and snatch them overhead.'], tips: 'Uses absolute raw explosive force; maintain a braced spine.', sets: 4, reps: '8-10', image: 'fullbody_devil_press', video: 'fullbody_devil_press_vid', related: [39, 48] }
 ];
 
+const defaultCategoryYoutubeIds = {
+    'Chest': 'gRVjAtPip0Y',       // Bench Press
+    'Back': 'op9kVnSso6Q',        // Deadlift
+    'Legs': 'ultW1OlMcO0',        // Squat
+    'Arms': 'ykJgrb560_Y',        // Bicep curls
+    'Shoulders': 'HzIiNhse09I',   // Shoulder press
+    'Core': 'ASzZgN6Q1g4',        // Plank
+    'Cardio': '4n9fR3Jj9yA',      // Cardio treadmill
+    'HIIT': 'qLBImHhCXdA',        // Burpee
+    'Yoga': 'EC7RGJ975iM',        // Downward dog
+    'Full Body': 'Kj6al81L8qY'    // Clean & Press
+};
+
+const specificYoutubeIds = {
+    'Barbell Squats': 'ultW1OlMcO0',
+    'Barbell Bench Press': 'gRVjAtPip0Y',
+    'Deadlifts': 'op9kVnSso6Q',
+    'Downward Facing Dog': 'EC7RGJ975iM',
+    'Warrior II Pose': '4ykOyC-U3B4',
+    'Burpees Overload': 'qLBImHhCXdA',
+    'Clean and Press': 'Kj6al81L8qY',
+    'Dumbbell Bicep Curls': 'ykJgrb560_Y',
+    'Planks': 'ASzZgN6Q1g4',
+    'Seated Dumbbell Shoulder Press': 'HzIiNhse09I',
+    'Barbell Overhead Press': 'HzIiNhse09I',
+    'Lat Pulldown': 'CAwf7n6Luuc',
+    'Push-ups': 'IODxDxX7oi4'
+};
+
+const enrichWithYoutube = (dataset) => {
+    if (!Array.isArray(dataset)) return [];
+    return dataset.map(ex => {
+        const name = ex.name || ex.exercise_name || '';
+        const specificId = specificYoutubeIds[name];
+        const categoryId = defaultCategoryYoutubeIds[ex.category] || 'gRVjAtPip0Y';
+        return {
+            ...ex,
+            youtube_video_id: specificId || categoryId
+        };
+    });
+};
+
+const enrichedMockDataset = enrichWithYoutube(mockExercisesDataset);
+
 export const useExerciseStore = create((set, get) => ({
-    exercises: mockExercisesDataset, // Pre-loaded with our 50 high-quality exercises by default!
+    exercises: enrichedMockDataset, // Pre-loaded with our 50 high-quality exercises by default!
     isLoading: false,
     error: null,
     searchQuery: '',
@@ -85,13 +129,13 @@ export const useExerciseStore = create((set, get) => ({
             const response = await exercisesService.getExercises();
             const data = response.data.data || response.data;
             if (data && data.length > 0) {
-                set({ exercises: data, isLoading: false });
+                set({ exercises: enrichWithYoutube(data), isLoading: false });
             } else {
-                set({ exercises: mockExercisesDataset, isLoading: false });
+                set({ exercises: enrichedMockDataset, isLoading: false });
             }
         } catch (error) {
             // Safe fallback to our beautiful local mockup dataset!
-            set({ exercises: mockExercisesDataset, isLoading: false });
+            set({ exercises: enrichedMockDataset, isLoading: false });
             console.log("Laravel API not running. Loaded rich offline biometrics dataset.");
         }
     },
@@ -102,14 +146,17 @@ export const useExerciseStore = create((set, get) => ({
         const { exercises, searchQuery } = get();
         if (!searchQuery) return exercises;
         
-        const lowerQuery = searchQuery.toLowerCase();
-        return exercises.filter(ex => 
-            ex.name.toLowerCase().includes(lowerQuery) || 
-            ex.category.toLowerCase().includes(lowerQuery) ||
-            ex.difficulty.toLowerCase().includes(lowerQuery) ||
-            (ex.target_muscles && ex.target_muscles.some(m => m.toLowerCase().includes(lowerQuery))) ||
-            (ex.equipment && ex.equipment.toLowerCase().includes(lowerQuery))
-        );
+        const lowerQuery = searchQuery.toLowerCase().trim();
+        return exercises.filter(ex => {
+            if (!ex) return false;
+            const nameMatch = ex.name && typeof ex.name === 'string' && ex.name.toLowerCase().includes(lowerQuery);
+            const categoryMatch = ex.category && typeof ex.category === 'string' && ex.category.toLowerCase().includes(lowerQuery);
+            const difficultyMatch = ex.difficulty && typeof ex.difficulty === 'string' && ex.difficulty.toLowerCase().includes(lowerQuery);
+            const equipmentMatch = ex.equipment && typeof ex.equipment === 'string' && ex.equipment.toLowerCase().includes(lowerQuery);
+            const musclesMatch = Array.isArray(ex.target_muscles) && ex.target_muscles.some(m => typeof m === 'string' && m.toLowerCase().includes(lowerQuery));
+            
+            return nameMatch || categoryMatch || difficultyMatch || equipmentMatch || musclesMatch;
+        });
     },
 
     getExerciseById: (id) => {

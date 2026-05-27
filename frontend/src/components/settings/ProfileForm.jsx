@@ -10,7 +10,11 @@ const profileSchema = z.object({
     age: z.number().min(12, 'Must be at least 12 years old'),
     height: z.number().min(50, 'Height in cm required'),
     weight: z.number().min(20, 'Weight in kg required'),
-    goal: z.string().min(1, 'Goal is required')
+    goal: z.string().min(1, 'Goal is required'),
+    daily_water_target: z.number().min(500, 'Minimum hydration goal is 500ml'),
+    daily_calorie_target: z.number().min(500, 'Minimum calorie goal is 500 kcal'),
+    weekly_workout_frequency: z.number().min(1, 'Minimum 1 workout per week').max(7, 'Maximum 7 workouts per week'),
+    monthly_burn_target: z.number().min(500, 'Minimum monthly burn target is 500 kcal')
 });
 
 const ProfileForm = ({ user, onSubmit }) => {
@@ -21,7 +25,11 @@ const ProfileForm = ({ user, onSubmit }) => {
             age: user?.age || 25,
             height: user?.height || 180,
             weight: user?.weight || 75,
-            goal: user?.fitness_goal || 'muscle_gain'
+            goal: user?.fitness_goal || 'muscle_gain',
+            daily_water_target: user?.daily_water_target || 3500,
+            daily_calorie_target: user?.daily_calorie_target || 2500,
+            weekly_workout_frequency: user?.weekly_workout_frequency || 5,
+            monthly_burn_target: user?.monthly_burn_target || 12000
         }
     });
 
@@ -65,6 +73,34 @@ const ProfileForm = ({ user, onSubmit }) => {
                         <option value="maintenance">Maintenance</option>
                     </select>
                 </div>
+
+                <Input
+                    label="Daily Hydration Goal (ml)"
+                    type="number"
+                    error={errors.daily_water_target?.message}
+                    {...register('daily_water_target', { valueAsNumber: true })}
+                />
+                
+                <Input
+                    label="Daily Calorie Goal (kcal)"
+                    type="number"
+                    error={errors.daily_calorie_target?.message}
+                    {...register('daily_calorie_target', { valueAsNumber: true })}
+                />
+
+                <Input
+                    label="Weekly Workout Target (sessions)"
+                    type="number"
+                    error={errors.weekly_workout_frequency?.message}
+                    {...register('weekly_workout_frequency', { valueAsNumber: true })}
+                />
+
+                <Input
+                    label="Monthly Calorie Burning Goal (kcal)"
+                    type="number"
+                    error={errors.monthly_burn_target?.message}
+                    {...register('monthly_burn_target', { valueAsNumber: true })}
+                />
             </div>
 
             <Button type="submit" isLoading={isSubmitting}>

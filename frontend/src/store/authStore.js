@@ -10,11 +10,11 @@ export const useAuthStore = create(
             isAuthenticated: false,
             isLoading: false,
             error: null,
-            level: 4,
-            xp: 2450,
-            xpNextLevel: 5000,
-            streak: 5,
-            badges: ['streak_7', 'cal_10k', 'warrior'],
+            level: 1,
+            xp: 0,
+            xpNextLevel: 1000,
+            streak: 0,
+            badges: [],
 
             addXp: (amount) => {
                 set((state) => {
@@ -76,8 +76,19 @@ export const useAuthStore = create(
                 } catch (error) {
                     console.error('Logout error', error);
                 } finally {
-                    set({ user: null, token: null, isAuthenticated: false, isLoading: false });
+                    set({ 
+                        user: null, 
+                        token: null, 
+                        isAuthenticated: false, 
+                        isLoading: false,
+                        level: 1,
+                        xp: 0,
+                        xpNextLevel: 1000,
+                        streak: 0,
+                        badges: []
+                    });
                     localStorage.removeItem('token');
+                    localStorage.removeItem('fitforge-progress-storage');
                 }
             },
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import PageHeader from '../../components/common/PageHeader';
 import Card from '../../components/ui/Card';
 import WorkoutLogForm from '../../components/logging/WorkoutLogForm';
@@ -11,17 +11,27 @@ import { useProgressStore } from '../../store/useProgressStore';
 const LogWorkout = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const [submitting, setSubmitting] = useState(false);
+    const initialData = location.state?.initialData || {};
     
     const handleLogSubmit = async (data) => {
         setSubmitting(true);
         try {
+            const getLocalDateString = () => {
+                const date = new Date();
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
             const response = await progressService.logWorkout({
                 workout_plan_id: id,
                 calories_burned: data.calories_burned,
                 duration_completed: data.duration_minutes,
                 user_feedback: data.fatigue_level,
-                notes: data.notes
+                notes: data.notes,
+                date: getLocalDateString()
             });
 
             toast.success('Workout logged successfully to database! Great job!');
@@ -56,7 +66,7 @@ const LogWorkout = () => {
             </div>
 
             <Card className="p-4 sm:p-8 border-neon-blue/30 shadow-[0_0_20px_rgba(0,243,255,0.05)]">
-                <WorkoutLogForm onSubmit={handleLogSubmit} isLoading={submitting} />
+                <WorkoutLogForm onSubmit={handleLogSubmit} isLoading={submitting} initialData={initialData} />
             </Card>
         </div>
     );

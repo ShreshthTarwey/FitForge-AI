@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, Play, Pause, RotateCcw, CheckCircle, Zap, Dumbbell, Award, Flame, Smile, ShieldCheck, Sparkles, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
@@ -18,11 +18,16 @@ const mockExercises = [
 const LiveWorkout = () => {
     const navigate = useNavigate();
     const { id } = useParams();
+    const location = useLocation();
     const { addXp, streak } = useAuthStore();
     const { addWorkoutLog } = useProgressStore();
 
-    // Session Timers
-    const [seconds, setSeconds] = useState(0);
+    // Determine workout duration (defaulting to 45 minutes if not in location state)
+    const durationMinutes = location.state?.plan?.duration_minutes || location.state?.plan?.duration || 45;
+    const initialSeconds = durationMinutes * 60;
+
+    // Session Countdown Timer
+    const [secondsLeft, setSecondsLeft] = useState(initialSeconds);
     const [isActive, setIsActive] = useState(true);
 
     // Active Exercise
@@ -38,17 +43,55 @@ const LiveWorkout = () => {
     const [loggedFatigue, setLoggedFatigue] = useState('medium');
     const [loggedNotes, setLoggedNotes] = useState('');
 
+    const elapsedSeconds = initialSeconds - secondsLeft;
+
+    const handleAutoRedirect = () => {
+        const elapsedMinutes = Math.max(1, Math.round(elapsedSeconds / 60));
+        const caloriesBurned = Math.round(elapsedMinutes * 7.5);
+        toast.error("Time's up! Redirecting to Workout Complete page to log your progress.");
+        navigate(`/workouts/${id}/active`, {
+            state: {
+                initialData: {
+                    duration_minutes: elapsedMinutes,
+                    calories_burned: caloriesBurned
+                }
+            }
+        });
+    };
+
+    const handleSaveInBetween = () => {
+        const elapsedMinutes = Math.max(1, Math.round(elapsedSeconds / 60));
+        const caloriesBurned = Math.round(elapsedMinutes * 7.5);
+        toast.success("Saving session and redirecting to Workout Complete page.");
+        navigate(`/workouts/${id}/active`, {
+            state: {
+                initialData: {
+                    duration_minutes: elapsedMinutes,
+                    calories_burned: caloriesBurned
+                }
+            }
+        });
+    };
+
     useEffect(() => {
         let interval = null;
-        if (isActive && !isFinished) {
+        if (isActive && !isFinished && secondsLeft > 0) {
             interval = setInterval(() => {
-                setSeconds((prev) => prev + 1);
+                setSecondsLeft((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(interval);
+                        // Trigger async redirection safely
+                        setTimeout(() => handleAutoRedirect(), 100);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
             }, 1000);
         } else {
             clearInterval(interval);
         }
         return () => clearInterval(interval);
-    }, [isActive, isFinished]);
+    }, [isActive, isFinished, secondsLeft]);
 
     useEffect(() => {
         let restInterval = null;
@@ -96,18 +139,18 @@ const LiveWorkout = () => {
     };
 
     const handleSaveWorkout = () => {
-        // Record split history log
-        const newLog = {
-            name: `Live Session: Hypertrophy Split`,
-            duration: Math.round(seconds / 60) || 1,
-            calories: Math.round(seconds * 0.15) || 50,
-            fatigue: loggedFatigue,
-            notes: loggedNotes || 'Completed live training session inside FitForge Elite Live Mode.'
-        };
-        addWorkoutLog(newLog);
-        addXp(350); // Reward 350 XP for completing live session!
-        toast.success('Workout split saved to metrics timeline! +350 XP');
-        navigate('/logs');
+        const elapsedMinutes = Math.max(1, Math.round(elapsedSeconds / 60));
+        const caloriesBurned = Math.round(elapsedMinutes * 7.5);
+        toast.success('Finalizing workout! Redirecting to submit logs.');
+        navigate(`/workouts/${id}/active`, {
+            state: {
+                initialData: {
+                    duration_minutes: elapsedMinutes,
+                    calories_burned: caloriesBurned,
+                    notes: loggedNotes || 'Completed live training session inside FitForge Elite Live Mode.'
+                }
+            }
+        });
     };
 
     const activeExercise = mockExercises[currentExIndex];
@@ -142,21 +185,30 @@ const LiveWorkout = () => {
             <div className="max-w-4xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 items-center z-10">
                 {/* Active timers */}
                 <Card className="lg:col-span-1 p-6 border-slate-900 bg-slate-900/20 backdrop-blur-xl flex flex-col items-center justify-center text-center">
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1">TOTAL TRAINING TIME</span>
-                    <span className="text-5xl font-black font-mono text-white mb-6">{formatTime(seconds)}</span>
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1">TIME REMAINING</span>
+                    <span className="text-5xl font-black font-mono text-white mb-6">{formatTime(secondsLeft)}</span>
 
-                    <div className="flex gap-4">
+                    <div className="flex flex-col gap-3 w-full">
                         <Button 
                             variant="outline" 
                             size="sm"
                             onClick={() => setIsActive(!isActive)}
-                            className="w-28 flex items-center justify-center gap-1.5"
+                            className="w-full flex items-center justify-center gap-1.5"
                         >
                             {isActive ? (
-                                <><Pause className="w-4 h-4" /> Pause</>
+                                <><Pause className="w-4 h-4" /> Pause Session</>
                             ) : (
-                                <><Play className="w-4 h-4" /> Resume</>
+                                <><Play className="w-4 h-4" /> Resume Session</>
                             )}
+                        </Button>
+                        
+                        <Button 
+                            variant="primary" 
+                            size="sm"
+                            onClick={handleSaveInBetween}
+                            className="w-full bg-neon-green text-slate-950 hover:bg-neon-green/90 font-bold flex items-center justify-center gap-1.5 border-none"
+                        >
+                            Save Workout
                         </Button>
                     </div>
                 </Card>
@@ -294,14 +346,14 @@ const LiveWorkout = () => {
                                             <Flame className="w-5 h-5 text-neon-green" />
                                             <div>
                                                 <span className="text-[10px] font-bold text-slate-500 uppercase block">Calories</span>
-                                                <span className="text-sm font-bold text-white">{Math.round(seconds * 0.15)} kcal</span>
+                                                <span className="text-sm font-bold text-white">{Math.round(elapsedSeconds * 0.125)} kcal</span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <Smile className="w-5 h-5 text-neon-blue" />
                                             <div>
                                                 <span className="text-[10px] font-bold text-slate-500 uppercase block">Time Active</span>
-                                                <span className="text-sm font-bold text-white">{Math.round(seconds / 60)} mins</span>
+                                                <span className="text-sm font-bold text-white">{Math.round(elapsedSeconds / 60) || 1} mins</span>
                                             </div>
                                         </div>
                                     </div>

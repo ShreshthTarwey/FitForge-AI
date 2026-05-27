@@ -22,7 +22,7 @@ const WorkoutHistoryTimeline = ({ history = [] }) => {
                             
                             <div className="bg-slate-800/40 rounded-xl p-4 border border-slate-700/50 hover:border-slate-600 transition-colors">
                                 <div className="flex justify-between items-start mb-2">
-                                    <h4 className="font-bold text-white">{session.workout_title}</h4>
+                                    <h4 className="font-bold text-white">{session.name || session.workout_title || 'Workout Session'}</h4>
                                     <span className="text-xs font-semibold text-slate-400 bg-slate-800 px-2 py-1 rounded">
                                         {session.date}
                                     </span>
@@ -31,11 +31,11 @@ const WorkoutHistoryTimeline = ({ history = [] }) => {
                                 <div className="flex gap-4 text-xs font-medium text-slate-400">
                                     <span className="flex items-center text-orange-400">
                                         <Flame className="w-3 h-3 mr-1" />
-                                        {session.calories_burned} cal
+                                        {session.calories ?? session.calories_burned ?? 0} cal
                                     </span>
                                     <span className="flex items-center">
                                         <Clock className="w-3 h-3 mr-1" />
-                                        {session.duration_minutes} min
+                                        {session.duration ?? session.duration_minutes ?? 0} min
                                     </span>
                                 </div>
                                 
